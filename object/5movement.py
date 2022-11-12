@@ -11,12 +11,24 @@ import matplotlib.pyplot as plt
 import pyautogui as pyg
 import shutil
 
-file_name = './test/Left_Head_Detector.svm'
+# Set these thresholds accordingly.
+ 
+# If hand size is larger than this then up, button is triggered
+size_up_th = 80000
+ 
+# If hand size is smaller than this then down key is triggered
+size_down_th = 25000
+ 
+# If the center_x location is less than this then left key is triggered
+left = 320
+ 
+# If the center_x location is greater than this then right key is triggered
+right = 320
  
 # Load our trained detector 
-detector = dlib.simple_object_detector(file_name)
+detector = dlib.simple_object_detector('test/Right_Head_Detector.svm')
  
-# Set the window name
+# Set the window to normal
 cv2.namedWindow('frame', cv2.WINDOW_NORMAL)
  
 # Initialize webcam
@@ -61,6 +73,11 @@ while(True):
     # Detect with detector
     detections = detector(resized_frame)
      
+    # Set Default values
+    text = 'No Hand Detected'
+    center_x = 0
+    size = 0
+ 
     # Loop for each detection.
     for detection in (detections):    
          
@@ -70,26 +87,45 @@ while(True):
         x2 =  int(detection.right() * scale_factor )
         y2 =  int(detection.bottom()* scale_factor )
          
-        # Draw the bounding box
-        cv2.rectangle(frame,(x1,y1),(x2,y2),(0,255,0), 2 )
-        cv2.putText(frame, 'Left Detected', (x1, y2+20), cv2.FONT_HERSHEY_COMPLEX, 0.6, (0, 0, 255),2)
- 
         # Calculate size of the hand. 
         size = int( (x2 - x1) * (y2-y1) )
          
         # Extract the center of the hand on x-axis.
-        center_x = x2 - x1 // 2
-     
-    # Display FPS and size of hand
-    cv2.putText(frame, 'FPS: {:.2f}'.format(fps), (20, 20), cv2.FONT_HERSHEY_COMPLEX, 0.6, (0, 0, 255),2)
+        center_x = int(x1 + (x2 - x1) / 2)
+         
+        # Draw the bounding box of the detected hand
+        cv2.rectangle(frame,(x1,y1),(x2,y2),(0,255,0), 2 )
+         
+        # Now based on the size or center_x location set the required text
+        if center_x > right:
+            text = 'Right'
  
-    # This information is useful for when you'll be building hand gesture applications
-    cv2.putText(frame, 'Center: {}'.format(center_x), (540, 20), cv2.FONT_HERSHEY_COMPLEX, 0.5, (233, 100, 25))
-    cv2.putText(frame, 'size: {}'.format(size), (540, 40), cv2.FONT_HERSHEY_COMPLEX, 0.5, (233, 100, 25))
-     
+        elif center_x < left:
+            text = 'Left'
+ 
+        elif size > size_up_th:
+            text = 'Up'
+ 
+        elif size < size_down_th:
+            text = 'Down'
+             
+        else:
+            text = 'Neutral'
+             
+    # Now we should draw lines for left/right threshold
+    cv2.line(frame, (left,0),(left, frame.shape[0]),(25,25,255), 2)
+    cv2.line(frame, (right,0),(right, frame.shape[0]),(25,25,255), 2)    
+ 
+    # Display Center_x value and size.
+    cv2.putText(frame, 'Center: {}'.format(center_x), (500, 20), cv2.FONT_HERSHEY_COMPLEX, 0.6, (233, 100, 25), 1)
+    cv2.putText(frame, 'size: {}'.format(size), (500, 40), cv2.FONT_HERSHEY_COMPLEX, 0.6, (233, 100, 25))
+ 
+    # Finally display the text showing which key should be triggered
+    cv2.putText(frame, text, (220, 30), cv2.FONT_HERSHEY_COMPLEX, 0.7, (33, 100, 185), 2)
+ 
     # Display the image
     cv2.imshow('frame',frame)
-                   
+ 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
  

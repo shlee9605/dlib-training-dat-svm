@@ -55,6 +55,8 @@ while True:
 		for (sX, sY) in shape:
 			cv2.circle(frame, (sX, sY), 1, (0, 0, 255), -1)
 
+
+
   # show the frame
 	cv2.imshow("Frame", frame)
 	key = cv2.waitKey(1) & 0xFF
