@@ -17,7 +17,6 @@ args = vars(ap.parse_args())
 # dlib shape predictor on *just* the eyes, we must first define the
 # integer indexes that belong to the eyes
 LANDMARKS = set(list(range(36, 48)))
-LANDMARKS2 = set(list(range(27, 28)))
 
 # to easily parse out the eye locations from the XML file we can
 # utilize regular expressions to determine if there is a 'part'
@@ -54,8 +53,7 @@ for row in rows:
 		# indexes, write it to our output file
 		if name in LANDMARKS:
 			output.write("{}\n".format(row))
-		if name in LANDMARKS2:
-			output.write("{}\n".format(row))
+
 
 
 # close the output file
